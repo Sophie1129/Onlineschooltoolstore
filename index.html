@@ -127,44 +127,76 @@ button:hover{
 
 <header>
     <h1>📚 Online School Supply Store</h1>
+    <div id="userInfo">Not Logged In</div>
 </header>
 
 <div class="container">
 
-    <!-- Products -->
     <div class="card">
-        <h2>Products</h2>
+    <h2>School Supplies</h2>
 
-        <div class="products">
-
-            <div class="product">
-                <img src="https://images.unsplash.com/photo-1517842645767-c639042777db?w=600" alt="">
-                <div class="product-info">
-                    <h3>Highlighter</h3>
-                    <p class="price">NT$15</p>
-                </div>
-            </div>
+    <div class="products">
 
         <div class="product">
-            <img src="https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600" alt="">
+            <img src="https://images.unsplash.com/photo-1517842645767-c639042777db?w=600">
+            <div class="product-info">
+                <h3>Highlighter</h3>
+                <p class="price">NT$15</p>
+                <button onclick="addToCart('Highlighter',15)">
+                    Add To Cart
+                </button>
+            </div>
+        </div>
+
+        <div class="product">
+            <img src="https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600">
             <div class="product-info">
                 <h3>Correction Tape</h3>
                 <p class="price">NT$20</p>
+                <button onclick="addToCart('Correction Tape',20)">
+                    Add To Cart
+                </button>
             </div>
         </div>
 
         <div class="product">
-            <img src="https://images.unsplash.com/photo-1586074299757-dc655f18518c?w=600" alt="">
+            <img src="https://images.unsplash.com/photo-1586074299757-dc655f18518c?w=600">
             <div class="product-info">
                 <h3>Eraser</h3>
                 <p class="price">NT$12</p>
+                <button onclick="addToCart('Eraser',12)">
+                    Add To Cart
+                </button>
             </div>
         </div>
 
-        </div>
+    </div>
+</div>
+<div class="card">
+
+    <h2>🛒 Shopping Cart</h2>
+
+    <div id="cartItems">
+        Your cart is empty.
     </div>
 
-    <!-- Auth -->
+    <h3 id="cartTotal">
+        Total: NT$0
+    </h3>
+
+</div>
+    <div class="card">
+
+    <h2>Checkout</h2>
+
+    <input id="checkoutName" placeholder="Full Name">
+    <input id="checkoutEmail" type="email" placeholder="Email Address">
+
+    <button onclick="checkout()">
+        Submit Order
+    </button>
+
+</div>
     <div class="card">
         <h2>Account</h2>
 
@@ -194,28 +226,6 @@ button:hover{
         <button onclick="logout()">Logout</button>
     </div>
 
-    <!-- Order Form -->
-    <div class="card">
-        <h2>Place Order</h2>
-
-        <input id="customerName" placeholder="Customer Name">
-
-       <select id="productName">
-        <option value="Highlighter">Highlighter (NT$15)</option>
-        <option value="Correction Tape">Correction Tape (NT$20)</option>
-        <option value="Eraser">Eraser (NT$12)</option>
-    </select>
-
-        <input id="quantity" type="number" value="1">
-
-        <input id="price" type="number" placeholder="Price">
-
-        <textarea id="message" placeholder="Message"></textarea>
-
-        <button onclick="placeOrder()">Place Order</button>
-    </div>
-
-    <!-- Order History -->
     <div class="card">
         <h2>My Order History</h2>
 
@@ -255,7 +265,13 @@ from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // Firebase Config
 const firebaseConfig = {
-  ...
+  apiKey: "AIzaSyCJzCCtXqUocp3tJ8UA_5w-KRT4gknBvYA",
+  authDomain: "onlinestore-c2dd9.firebaseapp.com",
+  projectId: "onlinestore-c2dd9",
+  storageBucket: "onlinestore-c2dd9.firebasestorage.app",
+  messagingSenderId: "718751590576",
+  appId: "1:718751590576:web:fc401df926d47f9760b375",
+  measurementId: "G-DHDVQMRMNN"
 };
 
 // Firebase Initialize
@@ -276,56 +292,60 @@ emailjs.init({
 });
 
 let currentUser = null;
+let cart = [];
 
-// signUp()
-// login()
-// placeOrder()
-// loadOrders()
+// 【修正：補上 updateCart 函式，用於渲染購物車畫面】
+window.updateCart = function() {
+    const cartItemsDiv = document.getElementById("cartItems");
+    const cartTotalH3 = document.getElementById("cartTotal");
+    
+    if (cart.length === 0) {
+        cartItemsDiv.innerHTML = "Your cart is empty.";
+        cartTotalH3.innerText = "Total: NT$0";
+        return;
+    }
+    
+    let html = "";
+    let total = 0;
+    
+    cart.forEach(item => {
+        html += `<div>${item.name} x${item.quantity} - NT$${item.price * item.quantity}</div>`;
+        total += item.price * item.quantity;
+    });
+    
+    cartItemsDiv.innerHTML = html;
+    cartTotalH3.innerText = `Total: NT$${total}`;
+}
 
-</script>
+window.addToCart = function(name, price){
 
-// ==========================
-// Replace with your config
-// ==========================
+    const existing = cart.find(item => item.name === name);
 
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCJzCCtXqUocp3tJ8UA_5w-KRT4gknBvYA",
-  authDomain: "onlinestore-c2dd9.firebaseapp.com",
-  projectId: "onlinestore-c2dd9",
-  storageBucket: "onlinestore-c2dd9.firebasestorage.app",
-  messagingSenderId: "718751590576",
-  appId: "1:718751590576:web:fc401df926d47f9760b375",
-  measurementId: "G-DHDVQMRMNN"
-};
+    if(existing){
+        existing.quantity++;
+    }else{
+        cart.push({
+            name,
+            price,
+            quantity:1
+        });
+    }
 
+    updateCart();
+}
 
 // ==========================
 // Sign Up
 // ==========================
-
 window.signUp = async () => {
-
-    const email =
-    document.getElementById("signupEmail").value;
-
-    const password =
-    document.getElementById("signupPassword").value;
+    const email = document.getElementById("signupEmail").value;
+    const password = document.getElementById("signupPassword").value;
 
     try{
-
-        await createUserWithEmailAndPassword(
-            auth,
-            email,
-            password
-        );
-
+        await createUserWithEmailAndPassword(auth, email, password);
         alert("Signup successful");
-
     }catch(error){
-
         alert(error.message);
-
     }
 };
 
@@ -333,29 +353,15 @@ window.signUp = async () => {
 // ==========================
 // Login
 // ==========================
-
 window.login = async () => {
-
-    const email =
-    document.getElementById("loginEmail").value;
-
-    const password =
-    document.getElementById("loginPassword").value;
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
 
     try{
-
-        await signInWithEmailAndPassword(
-            auth,
-            email,
-            password
-        );
-
+        await signInWithEmailAndPassword(auth, email, password);
         alert("Login successful");
-
     }catch(error){
-
         alert(error.message);
-
     }
 };
 
@@ -363,167 +369,150 @@ window.login = async () => {
 // ==========================
 // Logout
 // ==========================
-
 window.logout = async () => {
-
     await signOut(auth);
-
 };
 
 
 // ==========================
 // Place Order
 // ==========================
-
-window.placeOrder = async () => {
+window.checkout = async function(){
 
     if(!currentUser){
-
         alert("Please login first.");
         return;
-
     }
 
-    const customerName =
-    document.getElementById("customerName").value;
+    if(cart.length===0){
+        alert("Cart is empty.");
+        return;
+    }
 
-    const productName =
-    document.getElementById("productName").value;
+    const customerName = document.getElementById("checkoutName").value;
+    const customerEmail = document.getElementById("checkoutEmail").value;
 
-    const quantity =
-    Number(document.getElementById("quantity").value);
+    if(!customerName || !customerEmail) {
+        alert("Please fill in name and email for checkout.");
+        return;
+    }
 
-    const price =
-    Number(document.getElementById("price").value);
-
-    const message =
-    document.getElementById("message").value;
+    let total = 0;
+    cart.forEach(item=>{
+        total += item.price * item.quantity;
+    });
 
     try{
-
         await addDoc(
             collection(db,"orders"),
             {
-
                 userId: currentUser.uid,
-
                 userEmail: currentUser.email,
-
                 customerName,
-
-                productName,
-
-                quantity,
-
-                price,
-
-                message,
-
+                customerEmail,
+                items: cart,
+                total,
+                status:"Pending",
                 orderDate: serverTimestamp()
-
             }
         );
 
-        alert("Order placed!");
+        const itemList = cart.map(item=>
+            `${item.name} x${item.quantity}`
+        ).join(", ");
 
+        await emailjs.send(
+            EMAILJS_SERVICE_ID,
+            EMAILJS_TEMPLATE_ID,
+            {
+                customer_name: customerName,
+                customer_email: customerEmail,
+                items: itemList,
+                total: total
+            }
+        );
+
+        alert("Order submitted successfully!");
+        cart = [];
+        updateCart();
         loadOrders();
 
+        // 清空輸入框
+        document.getElementById("checkoutName").value = "";
+        document.getElementById("checkoutEmail").value = "";
+
     }catch(error){
-
-        alert(error.message);
-
+        console.error(error);
+        alert("Order failed. " + error.message);
     }
-};
-
+}
 
 // ==========================
 // Load Orders
 // ==========================
-
 async function loadOrders(){
 
     if(!currentUser){
-
-        document.getElementById("orderHistory")
-        .innerHTML =
-        "Login to view orders.";
-
+        document.getElementById("orderHistory").innerHTML = "Login to view orders.";
         return;
     }
 
-    const q = query(
-        collection(db,"orders"),
-        where("userId","==",currentUser.uid),
-        orderBy("orderDate","desc")
-    );
+    try {
+        const q = query(
+            collection(db,"orders"),
+            where("userId","==",currentUser.uid),
+            orderBy("orderDate","desc")
+        );
 
-    const snapshot =
-    await getDocs(q);
+        const snapshot = await getDocs(q);
+        let html = "";
 
-    let html = "";
+        snapshot.forEach(doc=>{
+            const o = doc.data();
 
-    snapshot.forEach(doc=>{
+            // 【修正：o.items 的字串模版補上 $，並移除原始程式中不存在的欄位 o.message、o.price 等】
+            const itemDetails = (o.items || [])
+                .map(item => `${item.name} x${item.quantity} (NT$${item.price})`)
+                .join("<br>");
 
-        const o = doc.data();
+            html += `
+            <div class="order-item">
+                <strong>Items:</strong><br>${itemDetails}<br>
+                <strong>Customer Name:</strong> ${o.customerName || 'N/A'}<br>
+                <strong>Customer Email:</strong> ${o.customerEmail || 'N/A'}<br>
+                <strong>Total Amount:</strong> NT$${o.total}<br>
+                <strong>Status:</strong> ${o.status || 'Pending'}<br>
+                <strong>Account Email:</strong> ${o.userEmail}
+            </div>
+            `;
+        });
 
-        html += `
-        <div class="order-item">
+        if(html===""){
+            html="No orders found.";
+        }
 
-            <strong>${o.productName}</strong><br>
-
-            Customer:
-            ${o.customerName}<br>
-
-            Quantity:
-            ${o.quantity}<br>
-
-            Price:
-            $${o.price}<br>
-
-            Message:
-            ${o.message}<br>
-
-            Email:
-            ${o.userEmail}
-
-        </div>
-        `;
-    });
-
-    if(html===""){
-        html="No orders found.";
+        document.getElementById("orderHistory").innerHTML = html;
+    } catch (error) {
+        console.error("Error loading orders:", error);
+        // 如果噴出 Index 錯誤，Console 會顯示一條建立 Firebase Index 的專屬連結
+        document.getElementById("orderHistory").innerHTML = "Error loading orders. Check console for index requirements.";
     }
-
-    document.getElementById("orderHistory")
-    .innerHTML = html;
 }
 
 
 // ==========================
 // Auth Listener
 // ==========================
-
 onAuthStateChanged(auth,(user)=>{
 
     currentUser = user;
 
     if(user){
-
-        document.getElementById("userInfo")
-        .innerText =
-        `Logged in as: ${user.email}`;
-
+        document.getElementById("userInfo").innerText = `Logged in as: ${user.email}`;
         loadOrders();
-
     }else{
-
-        document.getElementById("userInfo")
-        .innerText =
-        "Not Logged In";
-
-        document.getElementById("orderHistory")
-        .innerHTML =
-        "Login to view orders.";
+        document.getElementById("userInfo").innerText = "Not Logged In";
+        document.getElementById("orderHistory").innerHTML = "Login to view orders.";
     }
 
 });
