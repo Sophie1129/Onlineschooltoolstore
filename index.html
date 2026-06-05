@@ -125,8 +125,7 @@ button:hover{
 <body>
 
 <header>
-    <h1>🛍 My Online Store</h1>
-    <div id="userInfo">Not Logged In</div>
+    <h1>📚 Online School Supply Store</h1>
 </header>
 
 <div class="container">
@@ -232,26 +231,57 @@ import { initializeApp }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
-getAuth,
-createUserWithEmailAndPassword,
-signInWithEmailAndPassword,
-signOut,
-onAuthStateChanged
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
 }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
-getFirestore,
-collection,
-addDoc,
-query,
-where,
-orderBy,
-getDocs,
-serverTimestamp
+  getFirestore,
+  collection,
+  addDoc,
+  query,
+  where,
+  orderBy,
+  getDocs,
+  serverTimestamp
 }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+
+// Firebase Config
+const firebaseConfig = {
+  ...
+};
+
+// Firebase Initialize
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+
+// EmailJS Config
+const EMAILJS_PUBLIC_KEY = "idz2AOO5O0lVowKHc";
+const EMAILJS_SERVICE_ID = "service_iayn6dg";
+const EMAILJS_TEMPLATE_ID = "template_dobxi6s";
+
+
+// Initialize EmailJS
+emailjs.init({
+  publicKey: EMAILJS_PUBLIC_KEY
+});
+
+let currentUser = null;
+
+// signUp()
+// login()
+// placeOrder()
+// loadOrders()
+
+</script>
 
 // ==========================
 // Replace with your config
