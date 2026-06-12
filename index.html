@@ -15,12 +15,10 @@
 }
 
 body{
-    /* 背景改成冷灰色 */
     background:#f0f4f8;
 }
 
 header{
-    /* 標頭改成深冷鋼藍 */
     background:#1e293b;
     color:#f1f5f9;
     padding:20px;
@@ -33,21 +31,18 @@ header{
     max-width:1200px;
     margin:auto;
     padding:20px;
-    /* 🆕 使用 Grid 實現左右雙欄版面 */
     display: grid;
     grid-template-columns: 1fr 380px;
     gap: 20px;
     align-items: start;
 }
 
-/* 左側欄位容器 */
 .left-column {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
-/* 右側欄位容器 */
 .right-column {
     display: flex;
     flex-direction: column;
@@ -64,14 +59,23 @@ header{
 
 h2{
     margin-bottom:15px;
-    /* 標題改成墨藍色 */
     color: #0f172a;
     font-size: 1.3rem;
     border-left: 4px solid #0284c7;
     padding-left: 10px;
 }
 
-/* 🆕 購物車總數量紅點改為與冷色系呼應的深冰藍/冰藍徽章 */
+/* 🆕 搜尋框專屬樣式 */
+.search-box {
+    margin-bottom: 20px;
+    position: relative;
+}
+.search-box input {
+    padding-left: 35px; /* 留位置給未來的圖示或純文字說明 */
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
 .badge {
     background: #0ea5e9;
     color: white;
@@ -93,6 +97,15 @@ h2{
     overflow:hidden;
     box-shadow:0 2px 6px rgba(0,0,0,.04);
     border: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: all 0.3s ease; /* 讓放大與發光特效變平滑 */
+}
+
+/* 🆕 點擊商品被凸顯時的特效樣式 (外框變粗、發光藍影、微放大) */
+.product.highlighted {
+    border: 3px solid #0284c7;
+    box-shadow: 0 0 15px rgba(2, 132, 199, 0.4);
+    transform: scale(1.03);
 }
 
 .product img{
@@ -112,7 +125,6 @@ h2{
 }
 
 .price{
-    /* 價格改成知性深冷藍 */
     color:#0284c7;
     font-weight:bold;
     margin-bottom: 10px;
@@ -134,7 +146,6 @@ input:focus {
 }
 
 button{
-    /* 按鈕全面改為冷靛藍色 */
     background:#0284c7;
     color:white;
     border:none;
@@ -149,7 +160,6 @@ button:hover{
     background:#0369a1;
 }
 
-/* 🆕 購物車內部項目的左右排版與按鈕樣式 */
 .cart-item {
     display: flex;
     justify-content: space-between;
@@ -172,7 +182,6 @@ button:hover{
     background: #bae6fd;
 }
 
-/* 🆕 右側帳號板塊改成上下垂直緊湊排列 */
 .auth-vertical{
     display:flex;
     flex-direction: column;
@@ -202,7 +211,6 @@ button:hover{
     color: #94a3b8;
 }
 
-/* 響應式：平板與手機畫面時自動變回單欄式 */
 @media(max-width:900px){
     .container{
         grid-template-columns: 1fr;
@@ -224,31 +232,36 @@ button:hover{
         
         <div class="card">
             <h2>School Supplies</h2>
-            <div class="products">
-                <div class="product">
+            
+            <div class="search-box">
+                <input id="searchInput" placeholder="🔍 Search products by name..." oninput="filterProducts()">
+            </div>
+
+            <div class="products" id="productList">
+                <div class="product" onclick="toggleHighlight(this)">
                     <img src="highlighter.jpg">
                     <div class="product-info">
                         <h3>Highlighter</h3>
                         <p class="price">NT$15</p>
-                        <button onclick="addToCart('Highlighter',15)">Add To Cart</button>
+                        <button onclick="event.stopPropagation(); addToCart('Highlighter',15)">Add To Cart</button>
                     </div>
                 </div>
 
-                <div class="product">
+                <div class="product" onclick="toggleHighlight(this)">
                     <img src="images/correction tape.jpg">
                     <div class="product-info">
                         <h3>Correction Tape</h3>
                         <p class="price">NT$20</p>
-                        <button onclick="addToCart('Correction Tape',20)">Add To Cart</button>
+                        <button onclick="event.stopPropagation(); addToCart('Correction Tape',20)">Add To Cart</button>
                     </div>
                 </div>
 
-                <div class="product">
+                <div class="product" onclick="toggleHighlight(this)">
                     <img src="eraser.jpg">
                     <div class="product-info">
                         <h3>Eraser</h3>
                         <p class="price">NT$12</p>
-                        <button onclick="addToCart('Eraser',12)">Add To Cart</button>
+                        <button onclick="event.stopPropagation(); addToCart('Eraser',12)">Add To Cart</button>
                     </div>
                 </div>
             </div>
@@ -330,6 +343,39 @@ emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
 
 let currentUser = null;
 let cart = [];
+
+// 🆕 功能 1：即時搜尋商品關鍵字
+window.filterProducts = function() {
+    const searchText = document.getElementById("searchInput").value.toLowerCase();
+    const products = document.querySelectorAll("#productList .product");
+    
+    products.forEach(product => {
+        const productName = product.querySelector("h3").innerText.toLowerCase();
+        // 如果包含關鍵字就顯示，沒有就隱藏 (display: none)
+        if (productName.includes(searchText)) {
+            product.style.display = "block";
+        } else {
+            product.style.display = "none";
+        }
+    });
+}
+
+// 🆕 功能 2：點擊凸顯商品（點擊時加上藍框，再點一下或是點別的商品會清除舊的藍框）
+window.toggleHighlight = function(element) {
+    // 檢查點到的這個是不是本來就已經被凸顯了
+    const wasHighlighted = element.classList.contains("highlighted");
+    
+    // 先把畫面上所有商品的凸顯效果都拔掉
+    const allProducts = document.querySelectorAll("#productList .product");
+    allProducts.forEach(product => {
+        product.classList.remove("highlighted");
+    });
+    
+    // 如果點到的本來沒被凸顯，那就幫它加上凸顯效果
+    if (!wasHighlighted) {
+        element.classList.add("highlighted");
+    }
+}
 
 // 渲染購物車介面
 window.updateCart = function() {
@@ -473,7 +519,7 @@ window.checkout = async function(){
     }
 }
 
-// Load Orders (包含 Index 防錯版)
+// Load Orders
 async function loadOrders(){
     if(!currentUser){
         document.getElementById("orderHistory").innerHTML = "Login to view orders.";
